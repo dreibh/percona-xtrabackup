@@ -1556,7 +1556,7 @@ recv_scan_log_seg_for_backup(
 #endif
 
 		if (no != log_block_convert_lsn_to_no(*scanned_lsn)
-		    || !log_block_checksum_is_ok(log_block)) {
+		    /* || !log_block_checksum_is_ok(log_block) */) {
 #if 0
 			fprintf(stderr,
 				"Log block n:o %lu, scanned lsn n:o %lu\n",
@@ -3728,6 +3728,7 @@ recv_scan_log_recs(
 	ut_ad(len % OS_FILE_LOG_BLOCK_SIZE == 0);
 	ut_ad(len >= OS_FILE_LOG_BLOCK_SIZE);
 
+	// ib::error() << "Entering recv_scan_log_recs";
 	do {
 		ut_ad(!finished);
 		no = log_block_get_hdr_no(log_block);
@@ -3739,8 +3740,12 @@ recv_scan_log_recs(
 			happen when InnoDB was killed while it was
 			writing redo log. We simply treat this as an
 			abrupt end of the redo log. */
-			finished = true;
-			break;
+			ib::error() << "no != expected_no: " << no << " " << expected_no;
+//			finished = true;
+//			break;
+
+                       ib::error() << "continuing";
+                       
 		}
 
 		if (!log_block_checksum_is_ok(log_block)) {
@@ -3755,8 +3760,12 @@ recv_scan_log_recs(
 			This could be the result of killing the server
 			while it was writing this log block. We treat
 			this as an abrupt end of the redo log. */
-			finished = true;
-			break;
+//			finished = true;
+//			break;
+
+                       ib::error() << "continuing";
+                       log_block += OS_FILE_LOG_BLOCK_SIZE;
+                       continue;
 		}
 
 		if (log_block_get_flush_bit(log_block)) {
@@ -3878,7 +3887,7 @@ recv_scan_log_recs(
 	    || (recv_is_from_backup && !recv_is_making_a_backup)) {
 		recv_scan_print_counter++;
 
-		if (finished || (recv_scan_print_counter % 80 == 0)) {
+		if (finished || (recv_scan_print_counter % 1 == 0)) {
 
 			ib::info() << "Doing recovery: scanned up to"
 				" log sequence number " << scanned_lsn
@@ -3900,6 +3909,7 @@ recv_scan_log_recs(
 			      || recv_sys->found_corrupt_fs
 			      || recv_sys->mlog_checkpoint_lsn
 			      == recv_sys->recovered_lsn);
+			ib::error() << "Leaving recv_scan_log_recs: MORE_DATA";
 			return(true);
 		}
 
@@ -3915,6 +3925,10 @@ recv_scan_log_recs(
 		}
 	}
 
+	if(finished) {
+		ib::error() << "Leaving recv_scan_log_recs: " << (int)finished;
+	}
+	
 	return(finished);
 }
 
