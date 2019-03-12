@@ -3740,12 +3740,8 @@ recv_scan_log_recs(
 			happen when InnoDB was killed while it was
 			writing redo log. We simply treat this as an
 			abrupt end of the redo log. */
-			ib::error() << "no != expected_no: " << no << " " << expected_no;
-//			finished = true;
-//			break;
-
-                       ib::error() << "continuing";
-                       
+			finished = true;
+			break;
 		}
 
 		if (!log_block_checksum_is_ok(log_block)) {
@@ -3765,6 +3761,7 @@ recv_scan_log_recs(
 
                        ib::error() << "continuing";
                        log_block += OS_FILE_LOG_BLOCK_SIZE;
+                       scanned_lsn += OS_FILE_LOG_BLOCK_SIZE;
                        continue;
 		}
 
@@ -3887,7 +3884,7 @@ recv_scan_log_recs(
 	    || (recv_is_from_backup && !recv_is_making_a_backup)) {
 		recv_scan_print_counter++;
 
-		if (finished || (recv_scan_print_counter % 1 == 0)) {
+		if (finished || (recv_scan_print_counter % 80 == 0)) {
 
 			ib::info() << "Doing recovery: scanned up to"
 				" log sequence number " << scanned_lsn
@@ -3926,7 +3923,7 @@ recv_scan_log_recs(
 	}
 
 	if(finished) {
-		ib::error() << "Leaving recv_scan_log_recs: " << (int)finished;
+		ib::error() << "Leaving recv_scan_log_recs: " << (int)finished << " corrupt=" << (int)recv_sys->found_corrupt_log;
 	}
 	
 	return(finished);
