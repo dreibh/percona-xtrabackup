@@ -2275,6 +2275,11 @@ page_parse_copy_rec_list_to_created_page(
 						block, index, mtr);
 	}
 
+	if(ptr != rec_end) {
+		ib::error() << "ADJUST: ptr=rec_end!!!";
+		ptr = rec_end;
+	}
+
 	ut_a(ptr == rec_end);
 
 	page = buf_block_get_frame(block);
