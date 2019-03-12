@@ -1426,6 +1426,10 @@ use_heap:
 
 	/* 3. Create the record */
 	insert_rec = rec_copy(insert_buf, rec, offsets);
+   if(insert_rec == NULL) {
+ 		ib::error() << "insert_rec == NULL";
+      return NULL;
+   }
 	rec_offs_make_valid(insert_rec, index, offsets);
 
 	/* 4. Insert the record in the linked list of records */
