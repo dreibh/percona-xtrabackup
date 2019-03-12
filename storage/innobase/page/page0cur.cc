@@ -2273,6 +2273,10 @@ page_parse_copy_rec_list_to_created_page(
 	while (ptr < rec_end) {
 		ptr = page_cur_parse_insert_rec(TRUE, ptr, end_ptr,
 						block, index, mtr);
+                if(ptr == NULL) {
+                   ib::error() << "Stop with ptr==NULL!";
+                   break;
+                }
 	}
 
 	if(ptr != rec_end) {
