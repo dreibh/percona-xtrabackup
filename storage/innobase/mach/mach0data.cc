@@ -42,6 +42,11 @@ mach_parse_compressed(
 {
 	ulint	val;
 
+	if (*ptr == NULL) {   // !!!
+                ib::error() << "!!! *ptr == NULL !!!";
+		return(0);
+	}
+
 	if (*ptr >= end_ptr) {
 		*ptr = NULL;
 		return(0);
