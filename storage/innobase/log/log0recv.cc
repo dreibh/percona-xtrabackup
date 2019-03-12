@@ -3759,10 +3759,39 @@ recv_scan_log_recs(
 //			finished = true;
 //			break;
 
-                       ib::error() << "continuing";
-                       log_block += OS_FILE_LOG_BLOCK_SIZE;
-                       scanned_lsn += OS_FILE_LOG_BLOCK_SIZE;
-                       continue;
+                       ib::error() << "clearing + continuing";
+                       
+union {
+   const byte* r;
+   const unsigned char* u;
+   byte* w;
+} u;
+u.r=log_block;
+byte* log_block_w = u.w;
+
+char buffer[65536];
+for(unsigned int i = 0;i < OS_FILE_LOG_BLOCK_SIZE; i++) {
+   char str[8];
+   if((i % 4) == 0) {
+      strcat((char*)&buffer, "   ");
+   }
+   snprintf((char*)&str, sizeof(str), "%02x ", u.u[i]);
+   strcat((char*)&buffer, (const char*)&str);
+}
+ib::error() << "ORIGINAL BLOCK: " << buffer;
+
+ib::error() <<"log_block_get_data_len=" << log_block_get_data_len(log_block);
+ib::error() <<"log_block_get_hdr_no=" << log_block_get_hdr_no(log_block);
+ib::error() <<"log_block_get_first_rec_group=" << log_block_get_first_rec_group(log_block);
+ib::error() <<"log_block_get_checkpoint_no=" << log_block_get_checkpoint_no(log_block);
+
+//                       memset((char*)log_block_w, 0, OS_FILE_LOG_BLOCK_SIZE);
+//                       log_block_init(log_block_w, scanned_lsn);
+                       log_block_set_checksum(log_block_w, log_block_calc_checksum(log_block));
+                       
+                       //log_block += OS_FILE_LOG_BLOCK_SIZE;
+                       //scanned_lsn += OS_FILE_LOG_BLOCK_SIZE;
+                       //continue;
 		}
 
 		if (log_block_get_flush_bit(log_block)) {
