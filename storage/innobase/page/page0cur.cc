@@ -1530,7 +1530,7 @@ use_heap:
                    }
                 }
                 else {
-                 ib::error() << "owner_rec == NULL";
+                 ib::error() << "insert_rec == NULL";
                 }
 	}
 

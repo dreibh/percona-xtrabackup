@@ -2567,6 +2567,15 @@ recv_recover_page_func(
 			skip_recv = (recv->start_lsn < init_lsn);
 		}
 
+
+		const lsn_t badLSN = 55026211352064;
+		if((recv->start_lsn >= badLSN) &&
+                  (recv->start_lsn + recv->len <= badLSN)) {
+                 ib::error() << "SKIPPING: " << recv->start_lsn << " -- " << recv->start_lsn + recv->len
+                             << " (bad is " << badLSN << ")";
+                 skip_recv = true;
+                }
+
 		/* Ignore applying the redo logs for tablespace that is
 		truncated. Post recovery there is fixup action that will
 		restore the tablespace back to normal state.
@@ -3760,7 +3769,7 @@ recv_scan_log_recs(
 //			break;
 
                        ib::error() << "clearing + continuing";
-                       
+
 union {
    const byte* r;
    const unsigned char* u;
@@ -3788,7 +3797,7 @@ ib::error() <<"log_block_get_checkpoint_no=" << log_block_get_checkpoint_no(log_
 //                       memset((char*)log_block_w, 0, OS_FILE_LOG_BLOCK_SIZE);
 //                       log_block_init(log_block_w, scanned_lsn);
                        log_block_set_checksum(log_block_w, log_block_calc_checksum(log_block));
-                       
+
                        //log_block += OS_FILE_LOG_BLOCK_SIZE;
                        //scanned_lsn += OS_FILE_LOG_BLOCK_SIZE;
                        //continue;
@@ -3954,7 +3963,7 @@ ib::error() <<"log_block_get_checkpoint_no=" << log_block_get_checkpoint_no(log_
 	if(finished) {
 		ib::error() << "Leaving recv_scan_log_recs: " << (int)finished << " corrupt=" << (int)recv_sys->found_corrupt_log;
 	}
-	
+
 	return(finished);
 }
 
@@ -4143,7 +4152,7 @@ recv_init_crash_recovery_spaces(void)
 
 				recv_spaces_t::iterator i
 					= recv_spaces.find(space);
-				
+
 				if (i == recv_spaces.end()) {
 					continue;
 				}
