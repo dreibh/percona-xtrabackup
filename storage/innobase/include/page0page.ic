@@ -1021,10 +1021,12 @@ page_rec_find_owner_rec(
 	if (page_rec_is_comp(rec)) {
 		while (rec_get_n_owned_new(rec) == 0) {
 			rec = page_rec_get_next(rec);
+                        if(rec == NULL) { return NULL; }
 		}
 	} else {
 		while (rec_get_n_owned_old(rec) == 0) {
 			rec = page_rec_get_next(rec);
+                        if(rec == NULL) { return NULL; }
 		}
 	}
 
