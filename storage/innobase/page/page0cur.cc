@@ -1509,24 +1509,29 @@ use_heap:
 	/* 7. It remains to update the owner record. */
 	{
 		rec_t*	owner_rec	= page_rec_find_owner_rec(insert_rec);
-		ulint	n_owned;
-		if (page_is_comp(page)) {
-			n_owned = rec_get_n_owned_new(owner_rec);
-			rec_set_n_owned_new(owner_rec, NULL, n_owned + 1);
-		} else {
-			n_owned = rec_get_n_owned_old(owner_rec);
-			rec_set_n_owned_old(owner_rec, n_owned + 1);
-		}
+                if(owner_rec != NULL) {
+                   ulint	n_owned;
+                   if (page_is_comp(page)) {
+                           n_owned = rec_get_n_owned_new(owner_rec);
+                           rec_set_n_owned_new(owner_rec, NULL, n_owned + 1);
+                   } else {
+                           n_owned = rec_get_n_owned_old(owner_rec);
+                           rec_set_n_owned_old(owner_rec, n_owned + 1);
+                   }
 
-		/* 8. Now we have incremented the n_owned field of the owner
-		record. If the number exceeds PAGE_DIR_SLOT_MAX_N_OWNED,
-		we have to split the corresponding directory slot in two. */
+                   /* 8. Now we have incremented the n_owned field of the owner
+                   record. If the number exceeds PAGE_DIR_SLOT_MAX_N_OWNED,
+                   we have to split the corresponding directory slot in two. */
 
-		if (UNIV_UNLIKELY(n_owned == PAGE_DIR_SLOT_MAX_N_OWNED)) {
-			page_dir_split_slot(
-				page, NULL,
-				page_dir_find_owner_slot(owner_rec));
-		}
+                   if (UNIV_UNLIKELY(n_owned == PAGE_DIR_SLOT_MAX_N_OWNED)) {
+                           page_dir_split_slot(
+                                   page, NULL,
+                                   page_dir_find_owner_slot(owner_rec));
+                   }
+                }
+                else {
+                 ib::error() << "owner_rec == NULL";
+                }
 	}
 
 	/* 9. Write log record of the insert */
